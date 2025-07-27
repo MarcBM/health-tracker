@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Health Tracker{% endblock %}
+
+{% block navbar %}
+<!-- No navbar on login page -->
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <!-- Logo/Header -->
+        <div class="text-center mb-4">
+            <i class="bi bi-heart-pulse text-primary" style="font-size: 3rem;"></i>
+            <h2 class="login-title">Health Tracker</h2>
+            <p class="text-muted">Sign in to access your health dashboard</p>
+        </div>
+        
+        <!-- Simple Login Form -->
+        <form method="post" action="/login">
+            <!-- Username Field -->
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    <i class="bi bi-person me-2"></i>Username
+                </label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    placeholder="Enter your username"
+                >
+            </div>
+            
+            <!-- Password Field -->
+            <div class="mb-4">
+                <label for="password" class="form-label">
+                    <i class="bi bi-lock me-2"></i>Password
+                </label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="Enter your password"
+                >
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+                <i class="bi bi-box-arrow-in-right me-2"></i>
+                Sign In
+            </button>
+        </form>
+        
+        <!-- Footer Info -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Secure personal health tracking
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Login page specific styling */
+body {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+}
+
+.navbar {
+    display: none;
+}
+
+.main-content {
+    margin-top: 0;
+}
+</style>
+{% endblock %} 

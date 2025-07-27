@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Health Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="health-card">
+                <h1 class="h3 text-gradient mb-1">Welcome Back!</h1>
+                <p class="text-muted mb-0">Here's your health overview for today</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-6 col-md-3">
+            <div class="health-card text-center">
+                <div class="metric-label">Steps Today</div>
+                <div class="metric-value">8,456</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-up"></i> +12% from yesterday
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-md-3">
+            <div class="health-card text-center">
+                <div class="metric-label">Calories</div>
+                <div class="metric-value">1,842</div>
+                <div class="metric-change negative">
+                    <i class="bi bi-arrow-down"></i> -158 from goal
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-md-3">
+            <div class="health-card text-center">
+                <div class="metric-label">Weight</div>
+                <div class="metric-value">175.2</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-down"></i> -0.8 lbs this week
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-md-3">
+            <div class="health-card text-center">
+                <div class="metric-label">Exercise</div>
+                <div class="metric-value">45</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-check-circle"></i> Goal reached!
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart Placeholders -->
+    <div class="row mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="health-card">
+                <h4 class="mb-3">
+                    <i class="bi bi-graph-up text-primary me-2"></i>
+                    Weight Progress
+                </h4>
+                <div class="chart-placeholder">
+                    <p class="text-muted text-center">Chart will go here</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-lg-4">
+            <div class="health-card">
+                <h4 class="mb-3">
+                    <i class="bi bi-activity text-success me-2"></i>
+                    Weekly Activity
+                </h4>
+                <div class="chart-placeholder">
+                    <p class="text-muted text-center">Chart will go here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Simple Content Placeholder -->
+    <div class="row">
+        <div class="col-12">
+            <div class="health-card">
+                <h4 class="mb-3">
+                    <i class="bi bi-plus-circle text-primary me-2"></i>
+                    Quick Actions
+                </h4>
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <a href="/data-entry" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-lg d-block mb-1"></i>
+                            Add Data
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="/history" class="btn btn-outline-info w-100">
+                            <i class="bi bi-graph-up d-block mb-1"></i>
+                            View History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Dashboard JavaScript -->
+<script src="{{ url_for('static', path='/js/dashboard.js') }}"></script>
+{% endblock %} 
