@@ -16,6 +16,14 @@
             <p class="text-muted">Sign in to access your health dashboard</p>
         </div>
         
+        <!-- Error Alert -->
+        {% if request.query_params.get('error') == 'invalid_credentials' %}
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Invalid username or password. Please try again.
+        </div>
+        {% endif %}
+        
         <!-- Simple Login Form -->
         <form method="post" action="/login">
             <!-- Username Field -->

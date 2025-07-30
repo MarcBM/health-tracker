@@ -8,7 +8,7 @@
 # ==============================================
 SECRET_KEY=your-super-secret-jwt-key-change-this-in-production-minimum-32-characters
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
+ACCESS_TOKEN_EXPIRE_MINUTES=43200
 
 # ==============================================
 # DATABASE CONFIGURATION
@@ -31,14 +31,6 @@ PORT=8000
 RELOAD=true
 
 # ==============================================
-# INITIAL ADMIN USER (Primary User Setup)
-# ==============================================
-ADMIN_USERNAME=marc
-ADMIN_EMAIL=marc@marcbm.com.au
-ADMIN_PASSWORD=changeme123
-ADMIN_FULL_NAME=Marc
-
-# ==============================================
 # CORS AND SECURITY
 # ==============================================
 # Comma-separated list of allowed origins
@@ -59,23 +51,6 @@ SESSION_COOKIE_SAMESITE=lax
 # Password requirements
 MIN_PASSWORD_LENGTH=8
 REQUIRE_SPECIAL_CHARS=false
-
-# ==============================================
-# APPLICATION FEATURES
-# ==============================================
-# Health metrics configuration
-DEFAULT_DAILY_CALORIE_GOAL=2000
-DEFAULT_DAILY_STEP_GOAL=10000
-DEFAULT_EXERCISE_GOAL_MINUTES=30
-
-# Data retention (days)
-DATA_RETENTION_DAYS=365
-
-# ==============================================
-# LOGGING
-# ==============================================
-LOG_LEVEL=INFO
-LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 # ==============================================
 # DEVELOPMENT SETTINGS

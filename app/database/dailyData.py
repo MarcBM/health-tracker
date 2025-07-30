@@ -1,9 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, Date
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean
+from .base import Base
 import pytz
 from datetime import datetime
-
-Base = declarative_base()
 
 
 class DailyData(Base):
@@ -31,6 +29,9 @@ class DailyData(Base):
     
     # Strength training
     strength_workout_type = Column(String(100), nullable=True)
+    
+    # Physio exercises
+    physio_completed = Column(Boolean, nullable=True)
     
     # Weight tracking
     weight_kg = Column(Float, nullable=True)
