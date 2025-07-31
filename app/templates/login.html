@@ -24,8 +24,8 @@
         </div>
         {% endif %}
         
-        <!-- Simple Login Form -->
-        <form method="post" action="/login">
+        <!-- Login Form - Could also be done with pure divs -->
+        <form id="loginForm">
             <!-- Username Field -->
             <div class="mb-3">
                 <label for="username" class="form-label">
@@ -37,7 +37,10 @@
                     id="username" 
                     name="username" 
                     required 
+                    autocomplete="username"
                     placeholder="Enter your username"
+                    inputmode="text"
+                    spellcheck="false"
                 >
             </div>
             
@@ -52,12 +55,14 @@
                     id="password" 
                     name="password" 
                     required 
+                    autocomplete="current-password"
                     placeholder="Enter your password"
+                    inputmode="text"
                 >
             </div>
             
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary w-100 mb-3">
+            <button type="submit" class="btn btn-primary w-100 mb-3" id="loginButton">
                 <i class="bi bi-box-arrow-in-right me-2"></i>
                 Sign In
             </button>
@@ -72,4 +77,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/login.js') }}"></script>
 {% endblock %} 

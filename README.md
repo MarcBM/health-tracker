@@ -63,18 +63,30 @@ health_tracker/
 │   │   ├── data_entry.py    # Data entry routes
 │   │   └── api.py           # API endpoints
 │   └── templates/
-│       ├── base.html        # Base template
-│       ├── login.html       # Login page
-│       ├── dashboard.html   # Main dashboard
-│       ├── data_entry.html  # Daily data entry form
-│       └── history.html     # Historical data views
+│       ├── base.html            # Base template
+│       ├── login.html           # Login page
+│       ├── change_password.html # Password change form
+│       ├── includes/
+│       │   ├── navbar.html      # Navigation bar component
+│       │   └── notifications.html # Notifications system
+│       └── dashboard/
+│           ├── dashboard.html   # Main dashboard
+│           └── sections/        # Individual dashboard sections
+│               ├── calorie_tracker.html
+│               ├── step_tracker.html
+│               ├── cardio_tracker.html
+│               ├── strength_training.html
+│               ├── physio_tracker.html
+│               └── weight_tracker.html
 ├── static/
 │   ├── css/
 │   │   └── style.css        # Custom styles
 │   ├── js/
-│   │   ├── dashboard.js     # Dashboard functionality
-│   │   ├── charts.js        # Chart configurations
-│   │   └── data_entry.js    # Form handling
+│   │   ├── login.js         # Login form functionality
+│   │   ├── change_password.js # Password change functionality
+│   │   ├── notifications.js # Generic notifications system
+│   │   ├── charts.js        # Chart configurations (future)
+│   │   └── data_entry.js    # Form handling (future)
 │   └── images/
 ├── requirements.txt         # Python dependencies
 ├── fly.toml                # Fly.io deployment configuration

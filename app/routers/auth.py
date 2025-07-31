@@ -26,8 +26,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
 
-# Security scheme
-security = HTTPBearer()
+# Security scheme (optional for cookie fallback)
+security = HTTPBearer(auto_error=False)
 
 # Request/Response models
 class LoginRequest(BaseModel):
@@ -88,22 +88,40 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return None
     return user
 
-# Authentication dependency
+# Unified authentication dependency
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> User:
-    """Get current user from JWT token"""
+    """Get current user from JWT token (supports both Bearer tokens and cookies)"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    if not credentials:
+    token = None
+    
+    # Try to get token from Authorization header first (for API requests)
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    else:
+        # Fall back to cookie (for form requests)
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            # Remove 'Bearer ' prefix if present
+            if cookie_token.startswith("Bearer "):
+                token = cookie_token[7:]
+            else:
+                token = cookie_token
+    
+    # If no token found in either location, raise exception
+    if not token:
         raise credentials_exception
     
-    payload = verify_token(credentials.credentials)
+    # Verify the token
+    payload = verify_token(token)
     if payload is None:
         raise credentials_exception
     
@@ -142,31 +160,22 @@ async def login_page(request: Request):
     
     return templates.TemplateResponse("login.html", {"request": request})
 
-@router.post("/login")
+@router.post("/login", response_model=Token)
 async def login(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
+    login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Handle both form-based and API login requests
+    Handle JSON login requests
     """
     # Authenticate user against database
-    user = authenticate_user(db, username, password)
+    user = authenticate_user(db, login_data.username, login_data.password)
     if not user:
-        # Check if this is a form request (has HTML accept header)
-        accept_header = request.headers.get("accept", "")
-        if "text/html" in accept_header:
-            # Redirect back to login with error for form requests
-            return RedirectResponse(url="/login?error=invalid_credentials", status_code=status.HTTP_302_FOUND)
-        else:
-            # Return JSON error for API requests
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     # Create access token with user info
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -179,22 +188,7 @@ async def login(
         expires_delta=access_token_expires
     )
     
-    # Check if this is a form request or API request
-    accept_header = request.headers.get("accept", "")
-    if "text/html" in accept_header:
-        # Form request - set cookie and redirect
-        response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-        response.set_cookie(
-            key="access_token",
-            value=f"Bearer {access_token}",
-            httponly=True,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            samesite="lax"
-        )
-        return response
-    else:
-        # API request - return JSON
-        return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me", response_model=UserInfo)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
@@ -217,39 +211,43 @@ async def logout():
     return response
 
 @router.get("/change-password", response_class=HTMLResponse)
-async def change_password_page(request: Request):
+async def change_password_page(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
     """
-    Display the password change form - redirect to dashboard for now
+    Display the password change form
     """
-    from fastapi.responses import RedirectResponse
-    # TODO: Create a password change page or integrate into settings
-    return RedirectResponse(url="/", status_code=302)
+    return templates.TemplateResponse("change_password.html", {
+        "request": request,
+        "user": current_user
+    })
 
 @router.post("/change-password", response_model=PasswordChangeResponse)
 async def change_password(
-    request: PasswordChangeRequest,
+    password_data: PasswordChangeRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Change user password by providing old and new passwords
+    Change user password via JSON API
     """
     # Verify the old password
-    if not verify_password(request.old_password, current_user.hashed_password):
+    if not verify_password(password_data.old_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect old password"
         )
     
-    # Validate new password (add any password requirements here)
-    if len(request.new_password) < 8:
+    # Validate new password
+    if len(password_data.new_password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must be at least 8 characters long"
         )
     
     # Hash the new password
-    new_hashed_password = get_password_hash(request.new_password)
+    new_hashed_password = get_password_hash(password_data.new_password)
     
     # Update the user's password in the database
     current_user.hashed_password = new_hashed_password

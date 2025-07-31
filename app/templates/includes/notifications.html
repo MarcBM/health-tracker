@@ -1,0 +1,23 @@
+<!-- Notifications Container -->
+<div id="notification-container">
+    <!-- Success Messages -->
+    {% if request.query_params.get('success') == 'password_changed' %}
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" data-notification-type="temporary" data-duration="4000">
+        <i class="bi bi-check-circle me-2"></i>
+        Password changed successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    
+    {% if request.query_params.get('success') == 'data_entry_saved' %}
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" data-notification-type="temporary" data-duration="4000">
+        <i class="bi bi-check-circle me-2"></i>
+        {% if request.query_params.get('date') and request.query_params.get('day') %}
+            Data for {{ request.query_params.get('day') }}, {{ request.query_params.get('date') }} was successfully updated!
+        {% else %}
+            Daily data saved successfully!
+        {% endif %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+</div>

@@ -22,8 +22,8 @@ source venv/bin/activate
 
 # Upgrade pip and install requirements
 echo "📦 Installing dependencies..."
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install --upgrade pip --quiet
+pip install -r requirements.txt --quiet
 
 # Set up environment file
 if [[ ! -f ".env" ]]; then
@@ -68,6 +68,6 @@ echo "✅ Development environment ready!"
 echo ""
 echo "🚀 Next steps:"
 echo "• Start development server: ./start_dev.sh"
-echo "• Or manually: cd app && uvicorn main:app --reload"
+echo "• Or manually: uvicorn main:app --reload"
 echo "• Access app: http://localhost:8000"
 echo "• API docs: http://localhost:8000/docs" 

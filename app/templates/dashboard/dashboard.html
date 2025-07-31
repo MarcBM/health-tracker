@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Health Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid" data-check-missing-data="dashboard">
+    
+    <!-- Calorie Tracker -->
+    {% include "dashboard/sections/calorie_tracker.html" %}
+    
+    <!-- Step Tracker -->
+    {% include "dashboard/sections/step_tracker.html" %}
+    
+    <!-- Cardio Tracker -->
+    {% include "dashboard/sections/cardio_tracker.html" %}
+    
+    <!-- Strength Training -->
+    {% include "dashboard/sections/strength_training.html" %}
+    
+    <!-- Physio Tracker -->
+    {% include "dashboard/sections/physio_tracker.html" %}
+    
+    <!-- Weight Tracker -->
+    {% include "dashboard/sections/weight_tracker.html" %}
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

@@ -32,6 +32,7 @@ class DailyData(Base):
     
     # Physio exercises
     physio_completed = Column(Boolean, nullable=True)
+    physio_active = Column(Boolean, nullable=True)
     
     # Weight tracking
     weight_kg = Column(Float, nullable=True)
