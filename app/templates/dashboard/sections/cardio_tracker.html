@@ -1,29 +1,74 @@
 <!-- Cardio Tracker Section -->
 <div class="row mb-4">
     <div class="col-6">
-        <div class="health-card text-center">
-            <h5 class="mb-3">
-                <i class="bi bi-heart text-primary me-2"></i>
-                Weekly Cardio
-            </h5>
-            <div class="metric-value">3</div>
-            <div class="metric-label">workouts this week</div>
-            <div class="metric-change positive">
-                <i class="bi bi-check-circle"></i> On track
+        <div class="card-stack card-stack-3" onclick="nextCard(this)">
+            <!-- Card 1: Total Minutes Last 7 Days vs Goal -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-heart text-primary me-2"></i>
+                    Total Cardio Minutes
+                </h5>
+                <div class="metric-value">180</div>
+                <div class="metric-label">of 150 min goal last 7 days</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-check-circle"></i> 120% of goal achieved
+                </div>
+            </div>
+            
+            <!-- Card 2: Low Intensity Minutes Last 7 Days vs Goal -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-activity text-info me-2"></i>
+                    Low Intensity Minutes
+                </h5>
+                <div class="metric-value">120</div>
+                <div class="metric-label">of 100 min goal last 7 days</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-trending-up"></i> 120% of goal achieved
+                </div>
+            </div>
+            
+            <!-- Card 3: High Intensity Minutes Last 7 Days vs Goal -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-lightning text-info me-2"></i>
+                    High Intensity Minutes
+                </h5>
+                <div class="metric-value">60</div>
+                <div class="metric-label">of 50 min goal last 7 days</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-fire"></i> 120% of goal achieved
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-6">
-        <div class="health-card text-center">
-            <h5 class="mb-3">
-                <i class="bi bi-lightning text-primary me-2"></i>
-                Cardio Streak
-            </h5>
-            <div class="metric-value">8</div>
-            <div class="metric-label">weeks in a row</div>
-            <div class="metric-change positive">
-                <i class="bi bi-fire"></i> Strong streak!
+        <div class="card-stack" onclick="nextCard(this)">
+            <!-- Card 1: Current Cardio Streak -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-lightning text-primary me-2"></i>
+                    Cardio Streak
+                </h5>
+                <div class="metric-value">12</div>
+                <div class="metric-label">days with 15+ min workouts</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-fire"></i> Strong streak!
+                </div>
+            </div>
+            
+            <!-- Card 2: Cardio Streak Record -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-trophy text-info me-2"></i>
+                    Streak Record
+                </h5>
+                <div class="metric-value">28</div>
+                <div class="metric-label">days best streak</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-calendar-event"></i> January 2024
+                </div>
             </div>
         </div>
     </div>

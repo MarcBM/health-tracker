@@ -1,29 +1,74 @@
 <!-- Step Tracker Section -->
 <div class="row mb-4">
     <div class="col-6">
-        <div class="health-card text-center">
-            <h5 class="mb-3">
-                <i class="bi bi-speedometer2 text-primary me-2"></i>
-                Steps Today
-            </h5>
-            <div class="metric-value">8,456</div>
-            <div class="metric-label">of 10,000 goal</div>
-            <div class="metric-change positive">
-                <i class="bi bi-arrow-up"></i> +12% from yesterday
+        <div class="card-stack card-stack-3" onclick="nextCard(this)">
+            <!-- Card 1: Steps Yesterday vs Goal -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-speedometer2 text-primary me-2"></i>
+                    Steps Yesterday
+                </h5>
+                <div class="metric-value">8,456</div>
+                <div class="metric-label">of 10,000 goal yesterday</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-check-circle"></i> 85% of goal achieved
+                </div>
+            </div>
+            
+            <!-- Card 2: 7-Day Average vs Previous 7-Day Average -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-bar-chart text-info me-2"></i>
+                    7-Day Average
+                </h5>
+                <div class="metric-value">9,234</div>
+                <div class="metric-label">steps per day this week</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-trending-up"></i> +5% vs previous 7 days
+                </div>
+            </div>
+            
+            <!-- Card 3: Personal Record with Date -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-award text-info me-2"></i>
+                    Personal Record
+                </h5>
+                <div class="metric-value">15,847</div>
+                <div class="metric-label">steps in one day</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-calendar-event"></i> March 15, 2024
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-6">
-        <div class="health-card text-center">
-            <h5 class="mb-3">
-                <i class="bi bi-fire text-primary me-2"></i>
-                Step Streak
-            </h5>
-            <div class="metric-value">14</div>
-            <div class="metric-label">days in a row</div>
-            <div class="metric-change positive">
-                <i class="bi bi-check-circle"></i> Goal met!
+        <div class="card-stack" onclick="nextCard(this)">
+            <!-- Card 1: Step Streak of Meeting Daily Goal -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-fire text-primary me-2"></i>
+                    Step Goal Streak
+                </h5>
+                <div class="metric-value">14</div>
+                <div class="metric-label">days meeting step goal</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-check-circle"></i> Goal met yesterday!
+                </div>
+            </div>
+            
+            <!-- Card 2: Longest Step Goal Streak Record -->
+            <div class="health-card card-layer text-center">
+                <h5 class="mb-3">
+                    <i class="bi bi-trophy text-info me-2"></i>
+                    Longest Streak Record
+                </h5>
+                <div class="metric-value">28</div>
+                <div class="metric-label">days best goal streak</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-calendar-event"></i> January 2024
+                </div>
             </div>
         </div>
     </div>

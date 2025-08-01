@@ -26,6 +26,51 @@ body {
     flex-direction: column;
 }
 
+/* Ensure all text elements use light colors */
+* {
+    color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+}
+
+p, span, div, small {
+    color: var(--text-color);
+}
+
+/* Specific overrides for muted text */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-center {
+    color: var(--text-color);
+}
+
+/* Comprehensive text color inheritance for dark theme */
+.health-card, 
+.health-card *, 
+.card-layer, 
+.card-layer *,
+.chart-placeholder,
+.chart-placeholder * {
+    color: var(--text-color);
+}
+
+/* Override for specific styled elements */
+.health-card .text-muted,
+.card-layer .text-muted,
+.chart-placeholder .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.health-card small,
+.card-layer small,
+.chart-placeholder small {
+    color: var(--text-muted) !important;
+}
+
 /* Main content spacing for fixed navbar */
 .main-content {
     margin-top: var(--navbar-height);
@@ -48,6 +93,151 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     border-color: var(--primary-color);
+}
+
+/* Card Stack System - For multi-layer cards */
+.card-stack {
+    position: relative;
+    cursor: pointer;
+    min-height: 140px; /* Ensure consistent height */
+}
+
+.card-stack .health-card {
+    margin-bottom: 0; /* Remove margin when used in stack */
+}
+
+.card-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.5;
+    transform: translateY(-8px) translateX(6px);
+    z-index: 1;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+/* Active card is fully visible and on top */
+.card-layer.active {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    position: relative;
+    pointer-events: auto;
+    z-index: 10;
+}
+
+/* Enhanced hover state for card stacks */
+.card-stack:hover .card-layer.active {
+    transform: translateY(-2px) translateX(0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border-color: var(--primary-color);
+}
+
+/* On hover, make the stack effect more pronounced */
+.card-stack:hover .card-layer:not(.active) {
+    transform: translateY(-12px) translateX(8px);
+    opacity: 0.3;
+}
+
+/* Opacity adjustments for different stack sizes */
+/* 3-card stacks: lower opacity to compensate for compounding */
+.card-stack-3 .card-layer:not(.active) {
+    opacity: 0.3;
+}
+
+.card-stack-3:hover .card-layer:not(.active) {
+    opacity: 0.2;
+}
+
+/* 4-card stacks: even lower opacity */
+.card-stack-4 .card-layer:not(.active) {
+    opacity: 0.25;
+}
+
+.card-stack-4:hover .card-layer:not(.active) {
+    opacity: 0.15;
+}
+
+/* Text color fixes for dark theme readability */
+.health-card * {
+    color: var(--text-color);
+}
+
+.health-card h1, 
+.health-card h2, 
+.health-card h3, 
+.health-card h4, 
+.health-card h5, 
+.health-card h6 {
+    color: var(--text-color) !important;
+}
+
+.health-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.health-card small {
+    color: var(--text-muted) !important;
+}
+
+.chart-placeholder {
+    color: var(--text-muted) !important;
+}
+
+.chart-placeholder * {
+    color: var(--text-muted) !important;
+}
+
+.chart-placeholder strong {
+    color: var(--text-color) !important;
+}
+
+/* Badge styling for dark theme */
+.badge {
+    color: var(--text-color) !important;
+}
+
+/* Bootstrap text color overrides for dark theme */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-info {
+    color: var(--info-color) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-warning {
+    color: var(--warning-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-light {
+    color: var(--text-color) !important;
+}
+
+.text-dark {
+    color: var(--text-color) !important;
+}
+
+/* Ensure chart placeholder text is always visible */
+.chart-placeholder p {
+    color: var(--text-muted) !important;
+}
+
+.chart-placeholder strong {
+    color: var(--text-color) !important;
+}
+
+.chart-placeholder small {
+    color: var(--text-muted) !important;
 }
 
 /* Metric display styling */
