@@ -178,28 +178,20 @@ def generate_dummy_data():
 
 def clear_existing_data():
     """
-    Clear existing data in the date range before generating new data
+    Clear ALL existing daily data from the database before generating new data
     """
-    # Use same dynamic date range as generate_dummy_data
-    today = date.today()
-    END_DATE = today - timedelta(days=1)  # Yesterday
-    START_DATE = END_DATE - timedelta(days=29)  # 30 days total
-    
     db = SessionLocal()
     
     try:
-        # Delete existing data in the range
-        deleted_count = db.query(DailyData).filter(
-            DailyData.date >= START_DATE,
-            DailyData.date <= END_DATE
-        ).delete()
+        # Delete ALL existing daily data records
+        deleted_count = db.query(DailyData).delete()
         
         db.commit()
         
         if deleted_count > 0:
-            print(f"🗑️  Cleared {deleted_count} existing records in date range")
+            print(f"🗑️  Cleared {deleted_count} existing records from database")
         else:
-            print("📝 No existing data found in date range")
+            print("📝 No existing data found in database")
             
         return True
         
@@ -230,9 +222,11 @@ def main():
     print(f"   • Gradual weight loss trend with daily fluctuations")
     print(f"   • Realistic missing data patterns")
     print("=" * 50)
+    print("⚠️  WARNING: This will DELETE ALL existing daily data in the database!")
+    print("   Only the new 30-day dummy data will remain.")
     
     # Ask for confirmation
-    response = input("\n🔄 Clear existing data and generate new dummy data? (y/N): ")
+    response = input("\n🔄 Clear ALL existing daily data and generate new dummy data? (y/N): ")
     
     if response.lower() in ['y', 'yes']:
         print("\n🔄 Starting data generation process...")
@@ -242,6 +236,7 @@ def main():
             # Generate new dummy data
             if generate_dummy_data():
                 print("\n🎉 Dummy data generation completed successfully!")
+                print("✨ All old data cleared and fresh 30-day dummy data generated!")
                 print("\n💡 Next steps:")
                 print("   1. Start the application: uvicorn app.main:app --reload")
                 print("   2. View the dashboard to see the generated data")
