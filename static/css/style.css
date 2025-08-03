@@ -71,9 +71,26 @@ p, span, div, small {
     color: var(--text-muted) !important;
 }
 
-/* Main content spacing for fixed navbar */
-.main-content {
+/* Notification container - always maintains navbar spacing whether empty or not */
+#notification-container {
+    min-height: calc(var(--navbar-height) / 4); /* Halved for mobile */
     margin-top: var(--navbar-height);
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    position: relative;
+    z-index: 1020; /* Below Bootstrap's navbar z-index (1030) but above other content */
+}
+
+/* Increase min-height on larger screens */
+@media (min-width: 576px) {
+    #notification-container {
+        min-height: var(--navbar-height);
+    }
+}
+
+/* Main content spacing - no top margin needed since notification container handles navbar spacing */
+.main-content {
     flex: 1;
     padding: 1rem;
 }
@@ -376,7 +393,7 @@ p, span, div, small {
 /* Responsive design */
 @media (min-width: 576px) {
     .main-content {
-        padding: 1.5rem;
+        padding: 0rem 1.5rem;
     }
     
     .health-card {
@@ -386,7 +403,7 @@ p, span, div, small {
 
 @media (min-width: 768px) {
     .main-content {
-        padding: 2rem;
+        padding: 0rem 2rem;
     }
     
     .chart-placeholder {
@@ -396,7 +413,7 @@ p, span, div, small {
 
 @media (min-width: 992px) {
     .main-content {
-        padding: 2rem 3rem;
+        padding: 0rem 3rem;
     }
     
     .chart-placeholder {
@@ -409,7 +426,6 @@ p, span, div, small {
         max-width: 1200px;
         margin-left: auto;
         margin-right: auto;
-        margin-top: var(--navbar-height);
     }
     
     .health-card {

@@ -48,52 +48,37 @@ This web application provides a simple yet comprehensive dashboard for tracking 
 
 ```
 health_tracker/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application entry point
-│   ├── database.py          # Database configuration and models
-│   ├── auth.py              # Authentication and user management
-│   ├── models.py            # SQLAlchemy models
-│   ├── schemas.py           # Pydantic schemas
-│   ├── crud.py              # Database operations
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── auth.py          # Authentication routes
-│   │   ├── dashboard.py     # Dashboard routes
-│   │   ├── data_entry.py    # Data entry routes
-│   │   └── api.py           # API endpoints
-│   └── templates/
-│       ├── base.html            # Base template
-│       ├── login.html           # Login page
-│       ├── change_password.html # Password change form
-│       ├── includes/
-│       │   ├── navbar.html      # Navigation bar component
-│       │   └── notifications.html # Notifications system
-│       └── dashboard/
-│           ├── dashboard.html   # Main dashboard
-│           └── sections/        # Individual dashboard sections
-│               ├── calorie_tracker.html
-│               ├── step_tracker.html
-│               ├── cardio_tracker.html
-│               ├── strength_training.html
-│               ├── physio_tracker.html
-│               └── weight_tracker.html
-├── static/
-│   ├── css/
-│   │   └── style.css        # Custom styles
-│   ├── js/
-│   │   ├── login.js         # Login form functionality
-│   │   ├── change_password.js # Password change functionality
-│   │   ├── notifications.js # Generic notifications system
-│   │   ├── charts.js        # Chart configurations (future)
-│   │   └── data_entry.js    # Form handling (future)
-│   └── images/
+├── app/                      # Main application package
+│   ├── database/            # Database models and configuration
+│   ├── routers/             # FastAPI route handlers
+│   ├── templates/           # Jinja2 HTML templates
+│   └── middleware.py        # Authentication middleware
+├── static/                  # Static assets (CSS, JS, images)
+├── main.py                  # FastAPI application entry point
 ├── requirements.txt         # Python dependencies
-├── fly.toml                # Fly.io deployment configuration
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore rules
-└── README.md               # This file
+├── *.py                     # Utility scripts (setup, database, users)
+└── fly.toml                 # Deployment configuration
 ```
+
+### Directory Structure Details
+
+- **`app/`**: Core application code
+  - **`database/`**: SQLAlchemy models (`User`, `DailyData`) and database configuration
+  - **`routers/`**: FastAPI route handlers for authentication and data endpoints
+  - **`templates/`**: Jinja2 templates for web pages, organized into base templates, auth pages, and dashboard sections
+  - **`middleware.py`**: JWT authentication middleware for route protection
+
+- **`static/`**: Frontend assets served directly by FastAPI
+  - **`css/`**: Custom Bootstrap-based styling
+  - **`js/`**: Client-side JavaScript for forms and interactions
+  - **`images/`**: Static images and icons
+
+- **Root Level**: Configuration and utility scripts
+  - **`main.py`**: FastAPI application entry point and route registration
+  - **`init_db.py`**: Database schema initialization
+  - **`create_user.py`**: User management utility
+  - **`dev_setup.sh`** / **`start_dev.sh`**: Development environment scripts
+  - **`generate_dummy_data.py`**: Test data generation for development
 
 ## 🚀 Quick Start
 
@@ -129,12 +114,12 @@ health_tracker/
 
 5. **Initialize database**
    ```bash
-   python -c "from app.database import create_tables; create_tables()"
+   python init_db.py
    ```
 
 6. **Run the application**
    ```bash
-   uvicorn app.main:app --reload
+   uvicorn main:app --reload
    ```
 
 7. **Access the application**

@@ -238,7 +238,7 @@ def main():
                 print("\n🎉 Dummy data generation completed successfully!")
                 print("✨ All old data cleared and fresh 30-day dummy data generated!")
                 print("\n💡 Next steps:")
-                print("   1. Start the application: uvicorn app.main:app --reload")
+                print("   1. Start the application: uvicorn main:app --reload")
                 print("   2. View the dashboard to see the generated data")
                 print("   3. Test charts and visualizations")
             else:
