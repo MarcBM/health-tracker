@@ -228,4 +228,75 @@ async def get_missing_data(
     
     return {
         "missing_days": formatted_missing
-    } 
+    }
+
+@router.get("/data/dashboard")
+async def get_dashboard_data(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get dashboard data
+    """
+    return {
+        "calories": await get_calorie_dashboard_data(db),
+        "steps": await get_steps_dashboard_data(db),
+        "cardio": await get_cardio_dashboard_data(db),
+        "strength": await get_strength_dashboard_data(db),
+        "physio": await get_physio_dashboard_data(db),
+        "weight": await get_weight_dashboard_data(db),
+    }
+
+async def get_calorie_dashboard_data(db: Session):
+    """
+    Get calorie data for the dashboard displays. Data includes the last 7 days, package each day with the day of the week and each calorie field from the DailyData table.
+    """
+    # TODO
+
+async def get_steps_dashboard_data(db: Session):
+    """
+    Get steps data for the dashboard displays. Data includes 5 items. 1. An object containing yesterday's steps actual and goal. 2. An object containing the average steps actual for the last 7 days, and the average steps actual for the 7 days before that. 3. An object containing the highest steps actual in the history, and the date of that day. 4. The current streak of days where steps actual was greater than or equal to the goal (streak starts from yesterday and goes back in time). 5. An object containing the longest streak of days where steps actual was greater than or equal to the goal (longest uninterrupted streak) and the last date of that streak.
+    """
+    # TODO
+
+async def get_cardio_dashboard_data(db: Session):
+    """
+    Get cardio data for the dashboard displays. Data includes 4 items. 1. The total number of low intensity minutes across the last 7 days. 2. The total number of high intensity minutes across the last 7 days. 3. The current streak of days where the total number of minutes was greater than or equal to 15 (streak starts from yesterday and goes back in time). 4. An object containing the longest streak of days where the total number of minutes was greater than or equal to 15 (longest uninterrupted streak) and the last date of that streak.
+    """
+    # TODO
+
+async def get_strength_dashboard_data(db: Session):
+    """
+    Get strength data for the dashboard displays. Data includes 2 items. 1. The number of days in the last 7 days where the strength_workout_type is not NULL or 'None'. 2. An object containing the counts of each strength_workout_type in the full history where the strength_workout_type is not NULL or 'None'.
+    """
+    # TODO
+
+async def get_physio_dashboard_data(db: Session):
+    """
+    Get physio data for the dashboard displays. Data includes 3 items. 1. The current state of the physio_active field. 2. The current streak of days where physio_active was True and physio_completed was True (streak starts from yesterday and goes back in time). 3. An object containing the longest streak of days where physio_active was True and physio_completed was True (longest uninterrupted streak) and the last date of that streak. Streaks in the physio data only count days where both fields are True, but the streak is not broken by a day where physio_active is False, only by days where physio_active is True and physio_completed is False, or when either field is NULL.
+    """
+    # TODO
+
+async def get_weight_dashboard_data(db: Session):
+    """
+    Get weight data for the dashboard displays. Data includes 1 item. 1. The full history of weight data, including the date and weight_kg field.
+    """
+    # TODO
+
+async def get_7_days_before_date(today: date) -> tuple[date, date]:
+    """
+    Get the date range for the 7 days prior to the given date (today).
+    
+    Args:
+        today: The current date
+        
+    Returns:
+        tuple[date, date]: A tuple of (start_date, end_date) where:
+            end_date is yesterday (today - 1)
+            start_date is 7 days before yesterday (for a total of 7 days)
+    """
+    yesterday = today - timedelta(days=1)
+    start_date = yesterday - timedelta(days=6)  # 6 days before yesterday
+    return start_date, yesterday
+
+
