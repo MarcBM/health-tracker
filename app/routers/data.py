@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Query, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, func
 from typing import Optional
 from datetime import date, timedelta
 from calendar import month_name
@@ -239,51 +239,396 @@ async def get_dashboard_data(
     API endpoint to get dashboard data
     """
     return {
-        "calories": await get_calorie_dashboard_data(db),
-        "steps": await get_steps_dashboard_data(db),
-        "cardio": await get_cardio_dashboard_data(db),
-        "strength": await get_strength_dashboard_data(db),
-        "physio": await get_physio_dashboard_data(db),
-        "weight": await get_weight_dashboard_data(db),
+        "calories": get_calorie_dashboard_data(db),
+        "steps": get_steps_dashboard_data(db),
+        "cardio": get_cardio_dashboard_data(db),
+        "strength": get_strength_dashboard_data(db),
+        "physio": get_physio_dashboard_data(db),
+        "weight": get_weight_dashboard_data(db),
     }
 
-async def get_calorie_dashboard_data(db: Session):
+def get_calorie_dashboard_data(db: Session):
     """
-    Get calorie data for the dashboard displays. Data includes the last 7 days, package each day with the day of the week and each calorie field from the DailyData table.
+    Returns the last 7 days of calorie data, including day of week and all calorie goal/actual fields.
     """
-    # TODO
+    
+    # Get the date range for the last 7 days
+    today = date.today()
+    start_date, end_date = get_7_days_before_date(today)
+    
+    # Query the database for calorie data in the last 7 days
+    calorie_data = db.query(DailyData).filter(
+        DailyData.date.between(start_date, end_date)
+    ).order_by(DailyData.date).all()
+    
+    # Create a list to store the formatted data
+    formatted_data = []
+    
+    # Process each day's data
+    for day_data in calorie_data:
+        formatted_day = {
+            "date": day_data.date.strftime('%Y-%m-%d'),
+            "day_of_week": day_data.day_of_week,
+            "calories_green_goal": day_data.calories_green_goal,
+            "calories_green_actual": day_data.calories_green_actual,
+            "calories_yellow_goal": day_data.calories_yellow_goal,
+            "calories_yellow_actual": day_data.calories_yellow_actual,
+            "calories_orange_goal": day_data.calories_orange_goal,
+            "calories_orange_actual": day_data.calories_orange_actual
+        }
+        formatted_data.append(formatted_day)
+    
+    return formatted_data
 
-async def get_steps_dashboard_data(db: Session):
+def get_steps_dashboard_data(db: Session):
     """
-    Get steps data for the dashboard displays. Data includes 5 items. 1. An object containing yesterday's steps actual and goal. 2. An object containing the average steps actual for the last 7 days, and the average steps actual for the 7 days before that. 3. An object containing the highest steps actual in the history, and the date of that day. 4. The current streak of days where steps actual was greater than or equal to the goal (streak starts from yesterday and goes back in time). 5. An object containing the longest streak of days where steps actual was greater than or equal to the goal (longest uninterrupted streak) and the last date of that streak.
+    Returns steps dashboard data: yesterday's stats, 7-day averages, all-time high, and streaks.
     """
-    # TODO
+    
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # 1. Yesterday's steps actual and goal
+    yesterday_data = db.query(DailyData.steps_actual, DailyData.steps_goal).filter(
+        DailyData.date == yesterday
+    ).first()
+    
+    yesterday_steps = {
+        "actual": yesterday_data.steps_actual if yesterday_data else None,
+        "goal": yesterday_data.steps_goal if yesterday_data else None
+    }
+    
+    # 2. Average steps for last 7 days and 7 days before that
+    # Get date ranges using helper method
+    last_7_start, last_7_end = get_7_days_before_date(today)
+    prev_7_start, prev_7_end = get_7_days_before_date(last_7_start)
+    
+    # Average for last 7 days
+    last_7_sum = db.query(func.sum(DailyData.steps_actual)).filter(
+        DailyData.date.between(last_7_start, last_7_end)
+    ).scalar()
+    last_7_avg = last_7_sum / 7 if last_7_sum is not None else 0
+    
+    # Average for previous 7 days
+    prev_7_sum = db.query(func.sum(DailyData.steps_actual)).filter(
+        DailyData.date.between(prev_7_start, prev_7_end)
+    ).scalar()
+    prev_7_avg = prev_7_sum / 7 if prev_7_sum is not None else 0
+    
+    averages = {
+        "last_7_days": float(last_7_avg) if last_7_avg else None,
+        "previous_7_days": float(prev_7_avg) if prev_7_avg else None
+    }
+    
+    # 3. Highest steps actual in history
+    max_steps_data = db.query(DailyData.steps_actual, DailyData.date).filter(
+        DailyData.steps_actual.isnot(None)
+    ).order_by(DailyData.steps_actual.desc()).first()
+    
+    highest_steps = {
+        "steps": max_steps_data.steps_actual if max_steps_data else None,
+        "date": max_steps_data.date.strftime('%Y-%m-%d') if max_steps_data else None
+    }
+    
+    # 4. Current streak (from yesterday backwards)
+    current_streak = 0
+    check_date = yesterday
+    
+    while True:
+        day_data = db.query(DailyData.steps_actual, DailyData.steps_goal).filter(
+            DailyData.date == check_date
+        ).first()
+        
+        # If no data exists for this date, or if either field is NULL, break the streak
+        if not day_data or day_data.steps_actual is None or day_data.steps_goal is None:
+            break
+        
+        if day_data.steps_actual >= day_data.steps_goal:
+            current_streak += 1
+            check_date -= timedelta(days=1)
+        else:
+            break
+    
+    # 5. Longest streak in history
+    # Get all data ordered by date (including days with NULL values)
+    all_steps_data = db.query(DailyData.date, DailyData.steps_actual, DailyData.steps_goal).order_by(DailyData.date).all()
+    
+    longest_streak = 0
+    longest_streak_end_date = None
+    current_streak_count = 0
+    previous_date = None
+    
+    for day_data in all_steps_data:
+        # Check for date continuity (should be consecutive days)
+        if previous_date and (day_data.date - previous_date).days > 1:
+            # Gap found, break the streak
+            current_streak_count = 0
+        
+        # Check if this day meets the goal (both fields must be non-NULL and actual >= goal)
+        if (day_data.steps_actual is not None and 
+            day_data.steps_goal is not None and 
+            day_data.steps_actual >= day_data.steps_goal):
+            current_streak_count += 1
+            if current_streak_count > longest_streak:
+                longest_streak = current_streak_count
+                longest_streak_end_date = day_data.date
+        else:
+            current_streak_count = 0
+        
+        previous_date = day_data.date
+    
+    longest_streak_info = {
+        "streak": longest_streak,
+        "end_date": longest_streak_end_date.strftime('%Y-%m-%d') if longest_streak_end_date else None
+    }
+    
+    return {
+        "yesterday": yesterday_steps,
+        "averages": averages,
+        "highest": highest_steps,
+        "current_streak": current_streak,
+        "longest_streak": longest_streak_info
+    }
 
-async def get_cardio_dashboard_data(db: Session):
+def get_cardio_dashboard_data(db: Session):
     """
-    Get cardio data for the dashboard displays. Data includes 4 items. 1. The total number of low intensity minutes across the last 7 days. 2. The total number of high intensity minutes across the last 7 days. 3. The current streak of days where the total number of minutes was greater than or equal to 15 (streak starts from yesterday and goes back in time). 4. An object containing the longest streak of days where the total number of minutes was greater than or equal to 15 (longest uninterrupted streak) and the last date of that streak.
+    Returns cardio dashboard data:
+    1. Total low and high intensity minutes (last 7 days)
+    2. Current streak of days (from yesterday) with ≥15 total minutes
+    3. Longest such streak and its end date
     """
-    # TODO
+    
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # Get date range for last 7 days
+    last_7_start, last_7_end = get_7_days_before_date(today)
+    
+    # 1. Total low intensity minutes across last 7 days
+    last_7_low_total = db.query(func.sum(DailyData.cardio_low_intensity_minutes)).filter(
+        DailyData.date.between(last_7_start, last_7_end)
+    ).scalar() or 0
+    
+    # 2. Total high intensity minutes across last 7 days
+    last_7_high_total = db.query(func.sum(DailyData.cardio_high_intensity_minutes)).filter(
+        DailyData.date.between(last_7_start, last_7_end)
+    ).scalar() or 0
+    
+    # 3. Current streak (from yesterday backwards)
+    current_streak = 0
+    check_date = yesterday
+    
+    while True:
+        day_data = db.query(DailyData.cardio_low_intensity_minutes, DailyData.cardio_high_intensity_minutes).filter(
+            DailyData.date == check_date
+        ).first()
+        
+        # If no data exists for this date, break the streak
+        if not day_data:
+            break
+        
+        total_minutes = (day_data.cardio_low_intensity_minutes or 0) + (day_data.cardio_high_intensity_minutes or 0)
+        
+        if total_minutes >= 15:
+            current_streak += 1
+            check_date -= timedelta(days=1)
+        else:
+            break
+    
+    # 4. Longest streak in history
+    # Get all cardio data ordered by date (including days with NULL values)
+    all_cardio_data = db.query(DailyData.date, DailyData.cardio_low_intensity_minutes, DailyData.cardio_high_intensity_minutes).order_by(DailyData.date).all()
+    
+    longest_streak = 0
+    longest_streak_end_date = None
+    current_streak_count = 0
+    previous_date = None
+    
+    for day_data in all_cardio_data:
+        # Check for date continuity (should be consecutive days)
+        if previous_date and (day_data.date - previous_date).days > 1:
+            # Gap found, break the streak
+            current_streak_count = 0
+        
+        total_minutes = (day_data.cardio_low_intensity_minutes or 0) + (day_data.cardio_high_intensity_minutes or 0)
+        
+        if total_minutes >= 15:
+            current_streak_count += 1
+            if current_streak_count > longest_streak:
+                longest_streak = current_streak_count
+                longest_streak_end_date = day_data.date
+        else:
+            current_streak_count = 0
+        
+        previous_date = day_data.date
+    
+    longest_streak_info = {
+        "streak": longest_streak,
+        "end_date": longest_streak_end_date.strftime('%Y-%m-%d') if longest_streak_end_date else None
+    }
+    
+    return {
+        "last_7_days": {
+            "low_intensity": last_7_low_total,
+            "high_intensity": last_7_high_total
+        },
+        "current_streak": current_streak,
+        "longest_streak": longest_streak_info
+    }
 
-async def get_strength_dashboard_data(db: Session):
+def get_strength_dashboard_data(db: Session):
     """
-    Get strength data for the dashboard displays. Data includes 2 items. 1. The number of days in the last 7 days where the strength_workout_type is not NULL or 'None'. 2. An object containing the counts of each strength_workout_type in the full history where the strength_workout_type is not NULL or 'None'.
+    Returns: 
+    1. Number of days with a strength workout in the last 7 days.
+    2. Counts of each strength_workout_type in all history (excluding NULL/'None').
     """
-    # TODO
+    
+    today = date.today()
+    
+    # Get date range for last 7 days
+    last_7_start, last_7_end = get_7_days_before_date(today)
+    
+    # 1. Number of days in last 7 days with strength workout
+    last_7_days_count = db.query(func.count(DailyData.strength_workout_type)).filter(
+        DailyData.date.between(last_7_start, last_7_end),
+        DailyData.strength_workout_type.isnot(None),
+        DailyData.strength_workout_type != 'None'
+    ).scalar() or 0
+    
+    # 2. Counts of each strength_workout_type in full history
+    # Get all strength data with valid workout types
+    all_strength_data = db.query(DailyData.date, DailyData.strength_workout_type).filter(
+        DailyData.strength_workout_type.isnot(None),
+        DailyData.strength_workout_type != 'None'
+    ).order_by(DailyData.date).all()
+    
+    # Count occurrences of each workout type
+    workout_type_counts = {}
+    for day_data in all_strength_data:
+        workout_type = day_data.strength_workout_type
+        if workout_type:
+            workout_type_counts[workout_type] = workout_type_counts.get(workout_type, 0) + 1
+    
+    return {
+        "last_7_days_count": last_7_days_count,
+        "workout_type_counts": workout_type_counts
+    }
 
-async def get_physio_dashboard_data(db: Session):
+def get_physio_dashboard_data(db: Session):
     """
-    Get physio data for the dashboard displays. Data includes 3 items. 1. The current state of the physio_active field. 2. The current streak of days where physio_active was True and physio_completed was True (streak starts from yesterday and goes back in time). 3. An object containing the longest streak of days where physio_active was True and physio_completed was True (longest uninterrupted streak) and the last date of that streak. Streaks in the physio data only count days where both fields are True, but the streak is not broken by a day where physio_active is False, only by days where physio_active is True and physio_completed is False, or when either field is NULL.
+    Get physio dashboard data: 
+    1. Current physio_active state (yesterday).
+    2. Current streak of consecutive days (from yesterday back) where both physio_active and physio_completed are True (skipping days where physio_active is False).
+    3. Longest such streak and its end date.
     """
-    # TODO
+    
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # 1. Current state of physio_active field
+    current_physio_data = db.query(DailyData.physio_active).filter(
+        DailyData.date == yesterday
+    ).first()
+    
+    current_physio_active = current_physio_data.physio_active if current_physio_data else None
+    
+    # 2. Current streak (from yesterday backwards)
+    current_streak = 0
+    check_date = yesterday
+    
+    while True:
+        day_data = db.query(DailyData.physio_active, DailyData.physio_completed).filter(
+            DailyData.date == check_date
+        ).first()
+        
+        # If no data exists for this date, break the streak
+        if not day_data:
+            break
+        
+        # Streak continues if: physio_active is True AND physio_completed is True
+        # Streak breaks if: physio_active is True AND (physio_completed is False OR NULL)
+        # Streak is NOT broken if: physio_active is False (skip this day)
+        
+        if day_data.physio_active is True:
+            if day_data.physio_completed is True:
+                current_streak += 1
+                check_date -= timedelta(days=1)
+            else:
+                # physio_active is True but physio_completed is False or NULL - break streak
+                break
+        else:
+            # physio_active is False or NULL - skip this day (don't break streak)
+            check_date -= timedelta(days=1)
+    
+    # 3. Longest streak in history
+    # Get all physio data ordered by date
+    all_physio_data = db.query(DailyData.date, DailyData.physio_active, DailyData.physio_completed).order_by(DailyData.date).all()
+    
+    longest_streak = 0
+    longest_streak_end_date = None
+    current_streak_count = 0
+    previous_date = None
+    
+    for day_data in all_physio_data:
+        # Check for date continuity (should be consecutive days)
+        if previous_date and (day_data.date - previous_date).days > 1:
+            # Gap found, break the streak
+            current_streak_count = 0
+        
+        # Streak logic: only count days where both active and completed are True
+        if day_data.physio_active is True and day_data.physio_completed is True:
+            current_streak_count += 1
+            if current_streak_count > longest_streak:
+                longest_streak = current_streak_count
+                longest_streak_end_date = day_data.date
+        elif day_data.physio_active is True:
+            # physio_active is True but physio_completed is False or NULL - break streak
+            current_streak_count = 0
+        # If physio_active is False or NULL, don't break streak, just continue
+        
+        previous_date = day_data.date
+    
+    longest_streak_info = {
+        "streak": longest_streak,
+        "end_date": longest_streak_end_date.strftime('%Y-%m-%d') if longest_streak_end_date else None
+    }
+    
+    return {
+        "current_active": current_physio_active,
+        "current_streak": current_streak,
+        "longest_streak": longest_streak_info
+    }
 
-async def get_weight_dashboard_data(db: Session):
+def get_weight_dashboard_data(db: Session):
     """
-    Get weight data for the dashboard displays. Data includes 1 item. 1. The full history of weight data, including the date and weight_kg field.
+    Retrieve all recorded weights with their dates and the total number of days between first and last entry.
     """
-    # TODO
+    # Get all weight data ordered by date
+    all_weight_data = db.query(DailyData.date, DailyData.weight_kg).filter(
+        DailyData.weight_kg.isnot(None)
+    ).order_by(DailyData.date).all()
+    
+    # Calculate the total days between first and last weight entry
+    total_days = 0
+    if len(all_weight_data) >= 2:
+        first_date = all_weight_data[0].date
+        last_date = all_weight_data[-1].date
+        total_days = (last_date - first_date).days
+    
+    # Format the data for the frontend
+    weight_history = []
+    for day_data in all_weight_data:
+        weight_history.append({
+            "date": day_data.date.strftime('%Y-%m-%d'),
+            "weight_kg": day_data.weight_kg
+        })
+    
+    return {
+        "weight_history": weight_history,
+        "total_days": total_days
+    }
 
-async def get_7_days_before_date(today: date) -> tuple[date, date]:
+def get_7_days_before_date(today: date) -> tuple[date, date]:
     """
     Get the date range for the 7 days prior to the given date (today).
     
