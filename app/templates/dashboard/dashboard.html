@@ -27,6 +27,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Dashboard JS -->
+<!-- Dashboard module scripts -->
+<script src="{{ url_for('static', path='/js/steps.js') }}"></script>
+<script src="{{ url_for('static', path='/js/cardio.js') }}"></script>
+<script src="{{ url_for('static', path='/js/physio.js') }}"></script>
 <script src="{{ url_for('static', path='/js/dashboard.js') }}"></script>
 {% endblock %}

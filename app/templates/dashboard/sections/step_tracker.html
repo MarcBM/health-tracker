@@ -3,7 +3,7 @@
     <div class="col-6">
         <div class="card-stack card-stack-3" onclick="nextCard(this)">
             <!-- Card 1: Steps Yesterday vs Goal -->
-            <div class="health-card card-layer text-center">
+            <div id="steps-yesterday-card" class="health-card card-layer text-center">
                 <h5 class="mb-3">
                     <i class="bi bi-speedometer2 text-primary me-2"></i>
                     Steps Yesterday
@@ -16,7 +16,7 @@
             </div>
             
             <!-- Card 2: 7-Day Average vs Previous 7-Day Average -->
-            <div class="health-card card-layer text-center">
+            <div id="steps-averages-card" class="health-card card-layer text-center">
                 <h5 class="mb-3">
                     <i class="bi bi-bar-chart text-info me-2"></i>
                     7-Day Average
@@ -29,7 +29,7 @@
             </div>
             
             <!-- Card 3: Personal Record with Date -->
-            <div class="health-card card-layer text-center">
+            <div id="steps-record-card" class="health-card card-layer text-center">
                 <h5 class="mb-3">
                     <i class="bi bi-award text-info me-2"></i>
                     Personal Record
@@ -46,7 +46,7 @@
     <div class="col-6">
         <div class="card-stack" onclick="nextCard(this)">
             <!-- Card 1: Step Streak of Meeting Daily Goal -->
-            <div class="health-card card-layer text-center">
+            <div id="steps-current-streak-card" class="health-card card-layer text-center">
                 <h5 class="mb-3">
                     <i class="bi bi-fire text-primary me-2"></i>
                     Step Goal Streak
@@ -59,7 +59,7 @@
             </div>
             
             <!-- Card 2: Longest Step Goal Streak Record -->
-            <div class="health-card card-layer text-center">
+            <div id="steps-longest-streak-card" class="health-card card-layer text-center">
                 <h5 class="mb-3">
                     <i class="bi bi-trophy text-info me-2"></i>
                     Longest Streak Record

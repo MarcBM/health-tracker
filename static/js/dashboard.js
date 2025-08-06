@@ -31,6 +31,11 @@ async function fetchDashboardData() {
             console.log('Physio data:', data.physio);
             console.log('Weight data:', data.weight);
             
+            // Update dashboard sections with real data
+            updateStepsDisplay(data.steps);
+            updateCardioDisplay(data.cardio);
+            updatePhysioDisplay(data.physio);
+            
         } else {
             console.error('Failed to fetch dashboard data:', response.status, response.statusText);
             const errorData = await response.json();
