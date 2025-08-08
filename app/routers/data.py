@@ -601,19 +601,24 @@ def get_physio_dashboard_data(db: Session):
 
 def get_weight_dashboard_data(db: Session):
     """
-    Retrieve all recorded weights with their dates and the total number of days between first and last entry.
+    Retrieve up to the last 1 year of recorded weights with their dates.
     """
-    # Get all weight data ordered by date
-    all_weight_data = db.query(DailyData.date, DailyData.weight_kg).filter(
+    # Find the last recorded weight date
+    last_date = db.query(func.max(DailyData.date)).filter(
         DailyData.weight_kg.isnot(None)
-    ).order_by(DailyData.date).all()
+    ).scalar()
     
-    # Calculate the total days between first and last weight entry
-    total_days = 0
-    if len(all_weight_data) >= 2:
-        first_date = all_weight_data[0].date
-        last_date = all_weight_data[-1].date
-        total_days = (last_date - first_date).days
+    if last_date is None:
+        return {"weight_history": []}
+    
+    # Compute 1-year window inclusive of last_date (approx 365 days)
+    window_start = last_date - timedelta(days=364)
+    
+    # Get weight data within the last year
+    all_weight_data = db.query(DailyData.date, DailyData.weight_kg).filter(
+        DailyData.weight_kg.isnot(None),
+        DailyData.date.between(window_start, last_date)
+    ).order_by(DailyData.date).all()
     
     # Format the data for the frontend
     weight_history = []
@@ -624,8 +629,7 @@ def get_weight_dashboard_data(db: Session):
         })
     
     return {
-        "weight_history": weight_history,
-        "total_days": total_days
+        "weight_history": weight_history
     }
 
 def get_7_days_before_date(today: date) -> tuple[date, date]:

@@ -6,6 +6,162 @@
 // Global variable to store the chart instance
 let weightChart = null;
 
+// Draw labeled downward ticks at starts of time windows (e.g., 7d, 30d, etc.)
+const segmentLabelsPlugin = {
+    id: 'segmentLabels',
+    afterDatasetsDraw(chart, args, opts) {
+        const markers = (opts && opts.markers) || [];
+        if (!markers.length) return;
+
+        const { ctx, chartArea, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+
+        const meta = chart.getDatasetMeta(0);
+        // Compute layouts left-to-right and dynamically deepen labels only when needed to avoid overlap
+        const ordered = markers.slice().sort((a, b) => a.x - b.x);
+        const placedBoxes = []; // track placed label boxes
+        const layouts = [];
+        ordered.forEach((marker) => {
+            const isLoss = marker.delta < 0;
+            const textColor = isLoss ? '#198754' : '#dc3545'; // green for loss, red for gain
+
+            // Pixel coordinates for the start point: use actual element position for precise alignment
+            const elem = meta && meta.data && meta.data[marker.index];
+            const x = elem && typeof elem.x === 'number' ? elem.x : xScale.getPixelForValue(marker.x);
+            const y = elem && typeof elem.y === 'number' ? elem.y : yScale.getPixelForValue(marker.y);
+
+            // Label text: show only weight change (no timeframe label)
+            const text = `${marker.delta > 0 ? '+' : ''}${marker.delta.toFixed(1)} kg`;
+
+            // Measure and determine label box size
+            const padX = 4; const padY = 2;
+            const metrics = ctx.measureText(text);
+            const boxW = metrics.width + padX * 2;
+            const boxH = 14 + padY * 2;
+            const maxY2 = chartArea.bottom - (boxH + 4); // keep box inside chart area
+
+            // Dynamic depth: start shallow, deepen only if overlapping with already placed labels
+            const baseTick = 14;
+            const step = 24; // deeper by 24px per collision level
+            let tickLen = baseTick;
+            let y2 = Math.min(y + tickLen, maxY2);
+            let boxX = x - boxW / 2;
+            // Clamp horizontally
+            let clampedBoxX = Math.max(chartArea.left, Math.min(boxX, chartArea.right - boxW));
+            let boxY = y2 + 2;
+
+            const overlaps = (r1, r2) => !(r1.x2 < r2.x1 || r2.x2 < r1.x1 || r1.y2 < r2.y1 || r2.y2 < r1.y1);
+            let safety = 0;
+            while (placedBoxes.some(r => overlaps(r, { x1: clampedBoxX, y1: boxY, x2: clampedBoxX + boxW, y2: boxY + boxH })) && safety < 10) {
+                tickLen += step;
+                y2 = Math.min(y + tickLen, maxY2);
+                boxY = y2 + 2;
+                // If we've hit max depth, break to avoid infinite loop
+                if (y2 >= maxY2) break;
+                safety++;
+            }
+            // Save layout and register box for future overlap checks
+            layouts.push({ x, y, y2, boxX: clampedBoxX, boxY, boxW, boxH, text, textColor });
+            placedBoxes.push({ x1: clampedBoxX, y1: boxY, x2: clampedBoxX + boxW, y2: boxY + boxH });
+        });
+
+        // Draw ticks beneath labels
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        layouts.forEach(l => {
+            ctx.beginPath();
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(l.x, l.y2);
+            ctx.stroke();
+        });
+
+        // Draw label boxes and text on top
+        layouts.forEach(l => {
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 1;
+            ctx.fillRect(l.boxX, l.boxY, l.boxW, l.boxH);
+            ctx.strokeRect(l.boxX, l.boxY, l.boxW, l.boxH);
+
+            ctx.fillStyle = l.textColor;
+            ctx.fillText(l.text, l.boxX + l.boxW / 2, l.boxY + 2);
+        });
+
+        ctx.restore();
+    }
+};
+
+// Register custom plugin globally (safe to call once)
+if (typeof Chart !== 'undefined' && Chart.register) {
+    Chart.register(segmentLabelsPlugin);
+}
+
+// Build markers: 7d, 30d, 90d, 180d, 365d, then every extra 365d back to start
+function buildSegmentMarkers(points) {
+    if (!points || !points.length) return [];
+
+    const end = points[points.length - 1]; // last recorded point
+    const first = points[0];
+    const dayMs = 24 * 60 * 60 * 1000;
+    const spanDays = Math.round((end.x - first.x) / dayMs);
+
+    const windows = [
+        { days: 7,   label: '7d' },
+        { days: 30,  label: '30d' },
+        { days: 90,  label: '3m' },
+        { days: 180, label: '6m' }
+    ];
+
+    const findPointAtOrBefore = (targetDate) => {
+        for (let i = points.length - 1; i >= 0; i--) {
+            if (points[i].x <= targetDate) return points[i];
+        }
+        return null;
+    };
+
+    const markers = [];
+    // Always include a marker at the start of dataset to show total change
+    if (first && end) {
+        markers.push({
+            x: first.x,
+            y: first.y,
+            index: first.index,
+            label: 'start',
+            delta: end.y - first.y
+        });
+    }
+    for (const w of windows) {
+        // Treat the last point as "yesterday" and build inclusive windows.
+        // Example: 7d window => start at (yesterday - 6 days).
+        const inclusiveDaysBack = Math.max(0, w.days - 1);
+        const startT = new Date(end.x.getTime() - inclusiveDaysBack * dayMs);
+        const startPt = findPointAtOrBefore(startT);
+        if (!startPt) continue;
+
+        // If the 1y marker coincides with the dataset start, skip it to avoid duplicate with 'start' marker
+        if ((w.label === '1y' || w.days === 365) && startPt.index === first.index) {
+            continue;
+        }
+
+        const delta = end.y - startPt.y; // negative = loss
+        markers.push({
+            x: startPt.x,
+            y: startPt.y,
+            index: startPt.index,
+            label: w.label,
+            delta
+        });
+    }
+
+    return markers;
+}
+
 /**
  * Create the weight chart with the provided data
  * @param {Array} weightData - Array of weight entries with date and weight_kg
@@ -27,6 +183,14 @@ function createWeightChart(weightData) {
     
     // Prepare data for Chart.js
     const chartData = prepareWeightChartData(weightData);
+
+    // Build points for marker computations [{ x: Date, y: number }]
+    const points = chartData.labels.map((d, i) => ({ x: new Date(d), y: chartData.weights[i], index: i }));
+    const markers = buildSegmentMarkers(points);
+
+    // Show point markers only where labels exist
+    const pointRadiusForIndex = new Array(chartData.weights.length).fill(0);
+    markers.forEach(m => { if (typeof m.index === 'number') pointRadiusForIndex[m.index] = 3; });
     
     // Create the chart
     weightChart = new Chart(ctx, {
@@ -44,8 +208,8 @@ function createWeightChart(weightData) {
                 pointBackgroundColor: 'rgb(75, 192, 192)',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 1,
-                pointRadius: 2,
-                pointHoverRadius: 4,
+                pointRadius: 0, // hide all points by default
+                pointHoverRadius: 0,
                 spanGaps: false // Ensure gaps are shown
             }]
         },
@@ -67,7 +231,9 @@ function createWeightChart(weightData) {
                             return `${context.parsed.y} kg`;
                         }
                     }
-                }
+                },
+                // Custom segment labels plugin
+                segmentLabels: { markers }
             },
             scales: {
                 x: {
@@ -112,6 +278,12 @@ function createWeightChart(weightData) {
             }
         }
     });
+
+    // Apply scriptable point radius after chart creation (Chart.js v4 supports arrays)
+    if (weightChart && weightChart.data && weightChart.data.datasets && weightChart.data.datasets[0]) {
+        weightChart.data.datasets[0].pointRadius = pointRadiusForIndex;
+        weightChart.update();
+    }
     
     console.log('Weight chart created successfully');
 }

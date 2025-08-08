@@ -2,8 +2,8 @@
 """
 Dummy Data Generation Script for Health Tracker
 
-Generates 30+ days of realistic dummy daily health data
-from July 1, 2025 to August 1, 2025 for testing the dashboard.
+Generates realistic dummy daily health data for a configurable rolling window
+leading up to yesterday (default ~1000 days ≈ 2.7 years) for testing the dashboard.
 """
 
 import os
@@ -18,15 +18,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import database components
 from app.database import SessionLocal, DailyData
 
+# Number of days of data to generate (inclusive of END_DATE)
+NUM_DAYS = 400
+
 def generate_dummy_data():
     """
     Generate dummy daily data for the specified date range
     """
     
-    # Configuration - Dynamic date range (30 days leading up to yesterday)
+    # Configuration - Dynamic date range (NUM_DAYS leading up to yesterday)
     today = date.today()
     END_DATE = today - timedelta(days=1)  # Yesterday (don't include today)
-    START_DATE = END_DATE - timedelta(days=29)  # 30 days total (including end date)
+    START_DATE = END_DATE - timedelta(days=NUM_DAYS - 1)  # Inclusive window
     
     # Calorie goals (stable throughout)
     CALORIE_GOALS = {
@@ -149,7 +152,7 @@ def generate_dummy_data():
                 trend_change = random.uniform(-0.3, 0.1)  # Bias towards weight loss
                 daily_fluctuation = random.uniform(-0.5, 0.5)
                 current_weight += trend_change + daily_fluctuation
-                current_weight = max(120.0, current_weight)  # Don't go below 120kg
+                current_weight = max(85.0, current_weight)  # Don't go below 85kg
                 daily_data.weight_kg = round(current_weight, 1)
             
             # Save to database
@@ -208,11 +211,11 @@ def main():
     # Calculate dynamic date range for display
     today = date.today()
     end_date = today - timedelta(days=1)  # Yesterday
-    start_date = end_date - timedelta(days=29)  # 30 days total
+    start_date = end_date - timedelta(days=NUM_DAYS - 1)  # Inclusive window
     
     print("🚀 Health Tracker Dummy Data Generator")
     print("=" * 50)
-    print(f"📅 Date range: {start_date.strftime('%B %d, %Y')} - {end_date.strftime('%B %d, %Y')} (30 days)")
+    print(f"📅 Date range: {start_date.strftime('%B %d, %Y')} - {end_date.strftime('%B %d, %Y')} ({NUM_DAYS} days)")
     print(f"📋 Features:")
     print(f"   • Stable calorie goals with realistic fluctuations")
     print(f"   • Progressive step goals (2000 → 10000)")
@@ -223,7 +226,7 @@ def main():
     print(f"   • Realistic missing data patterns")
     print("=" * 50)
     print("⚠️  WARNING: This will DELETE ALL existing daily data in the database!")
-    print("   Only the new 30-day dummy data will remain.")
+    print(f"   Only the new {NUM_DAYS}-day dummy data will remain.")
     
     # Ask for confirmation
     response = input("\n🔄 Clear ALL existing daily data and generate new dummy data? (y/N): ")
@@ -236,7 +239,7 @@ def main():
             # Generate new dummy data
             if generate_dummy_data():
                 print("\n🎉 Dummy data generation completed successfully!")
-                print("✨ All old data cleared and fresh 30-day dummy data generated!")
+                print(f"✨ All old data cleared and fresh {NUM_DAYS}-day dummy data generated!")
                 print("\n💡 Next steps:")
                 print("   1. Start the application: uvicorn main:app --reload")
                 print("   2. View the dashboard to see the generated data")
