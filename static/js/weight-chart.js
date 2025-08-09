@@ -216,6 +216,7 @@ function createWeightChart(weightData) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: 0 },
             plugins: {
                 legend: {
                     display: false // Hide the legend since there's only one dataset
@@ -249,7 +250,8 @@ function createWeightChart(weightData) {
                     },
                     grid: {
                         display: false
-                    }
+                    },
+                    ticks: { padding: 2 }
                 },
                 y: {
                     beginAtZero: true, // Start at zero for proper scale
@@ -260,9 +262,8 @@ function createWeightChart(weightData) {
                         color: 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
-                        callback: function(value) {
-                            return value + ' kg';
-                        }
+                        callback: function(value) { return value; },
+                        padding: 2
                     }
                 }
             },

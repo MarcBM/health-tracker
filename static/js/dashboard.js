@@ -35,6 +35,8 @@ async function fetchDashboardData() {
             updateStepsDisplay(data.steps);
             updateCardioDisplay(data.cardio);
             updatePhysioDisplay(data.physio);
+            handleCaloriesData(data.calories);
+            handleStrengthData(data.strength);
             handleWeightData(data.weight)
             
         } else {

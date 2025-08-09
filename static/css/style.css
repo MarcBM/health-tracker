@@ -92,7 +92,7 @@ p, span, div, small {
 /* Main content spacing - no top margin needed since notification container handles navbar spacing */
 .main-content {
     flex: 1;
-    padding: 1rem;
+    padding: 0.5rem; /* Tighter mobile spacing */
 }
 
 /* Card styling for dashboard elements */
@@ -100,10 +100,20 @@ p, span, div, small {
     background: var(--card-color);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    padding: 1rem; /* Tighter mobile padding */
+    margin-bottom: 0.75rem; /* Reduce gap between cards */
     border: 1px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Charts use a tighter card padding on all breakpoints */
+.health-card.chart-card {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.chart-card h4 {
+    margin-bottom: 0.5rem !important;
 }
 
 .health-card:hover {
@@ -378,47 +388,27 @@ p, span, div, small {
 }
 
 /* Chart placeholder containers */
-.chart-placeholder {
-    height: 200px;
-    margin: 1rem 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-color);
-    border: 2px dashed var(--border-color);
-    border-radius: 8px;
-    color: var(--text-muted);
+/* Unified chart container for all charts */
+.chart-container {
+    height: 220px;
+    position: relative;
 }
 
 /* Responsive design */
 @media (min-width: 576px) {
-    .main-content {
-        padding: 0rem 1.5rem;
-    }
+    .main-content { padding: 0.75rem 1rem; }
     
-    .health-card {
-        padding: 2rem;
-    }
+    .health-card { padding: 1.25rem; }
 }
 
 @media (min-width: 768px) {
-    .main-content {
-        padding: 0rem 2rem;
-    }
-    
-    .chart-placeholder {
-        height: 250px;
-    }
+    .main-content { padding: 1rem 1.25rem; }
+    .chart-container { height: 250px; }
 }
 
 @media (min-width: 992px) {
-    .main-content {
-        padding: 0rem 3rem;
-    }
-    
-    .chart-placeholder {
-        height: 300px;
-    }
+    .main-content { padding: 1rem 1.5rem; }
+    .chart-container { height: 300px; }
 }
 
 @media (min-width: 1200px) {
@@ -426,11 +416,10 @@ p, span, div, small {
         max-width: 1200px;
         margin-left: auto;
         margin-right: auto;
+        padding: 1rem 2rem;
     }
     
-    .health-card {
-        padding: 2.5rem;
-    }
+    .health-card { padding: 1.75rem; }
 }
 
 /* Utility classes */
