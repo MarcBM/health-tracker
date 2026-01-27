@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS daily_data;
 DROP TABLE IF EXISTS settings;
 DROP TABLE IF EXISTS view_permissions;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +30,7 @@ CREATE TABLE daily_data (
   physio_completed BOOLEAN,
   weight_kg FLOAT,
   PRIMARY KEY (date, author_id),
-  FOREIGN KEY (author_id) REFERENCES users(id)
+  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE settings (
@@ -53,14 +53,16 @@ CREATE TABLE settings (
   cardio_weekly_low_minutes_goal INTEGER NOT NULL DEFAULT 120,
   cardio_weekly_high_minutes_goal INTEGER NOT NULL DEFAULT 30,
   strength_weekly_workouts_goal INTEGER NOT NULL DEFAULT 5,
-  FOREIGN KEY (owner_id) REFERENCES users(id),
-  FOREIGN KEY (view_on_load_user_id) REFERENCES users(id)
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE, 
+  FOREIGN KEY (view_on_load_user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE view_permissions (
   viewer_id INTEGER NOT NULL,
   can_view_id INTEGER NOT NULL,
   PRIMARY KEY (viewer_id, can_view_id),
-  FOREIGN KEY (viewer_id) REFERENCES users(id),
-  FOREIGN KEY (can_view_id) REFERENCES users(id)
+  FOREIGN KEY (viewer_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (can_view_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_daily_data_author_date ON daily_data(author_id, date);
